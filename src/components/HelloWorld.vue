@@ -1,58 +1,145 @@
 <template>
-  <div class="hello">
-    <h1>{{ msg }}</h1>
-    <p>
-      For a guide and recipes on how to configure / customize this project,<br>
-      check out the
-      <a href="https://cli.vuejs.org" target="_blank" rel="noopener">vue-cli documentation</a>.
-    </p>
-    <h3>Installed CLI Plugins</h3>
-    <ul>
-      <li><a href="https://github.com/vuejs/vue-cli/tree/dev/packages/%40vue/cli-plugin-babel" target="_blank" rel="noopener">babel</a></li>
-      <li><a href="https://github.com/vuejs/vue-cli/tree/dev/packages/%40vue/cli-plugin-eslint" target="_blank" rel="noopener">eslint</a></li>
-    </ul>
-    <h3>Essential Links</h3>
-    <ul>
-      <li><a href="https://vuejs.org" target="_blank" rel="noopener">Core Docs</a></li>
-      <li><a href="https://forum.vuejs.org" target="_blank" rel="noopener">Forum</a></li>
-      <li><a href="https://chat.vuejs.org" target="_blank" rel="noopener">Community Chat</a></li>
-      <li><a href="https://twitter.com/vuejs" target="_blank" rel="noopener">Twitter</a></li>
-      <li><a href="https://news.vuejs.org" target="_blank" rel="noopener">News</a></li>
-    </ul>
-    <h3>Ecosystem</h3>
-    <ul>
-      <li><a href="https://router.vuejs.org" target="_blank" rel="noopener">vue-router</a></li>
-      <li><a href="https://vuex.vuejs.org" target="_blank" rel="noopener">vuex</a></li>
-      <li><a href="https://github.com/vuejs/vue-devtools#vue-devtools" target="_blank" rel="noopener">vue-devtools</a></li>
-      <li><a href="https://vue-loader.vuejs.org" target="_blank" rel="noopener">vue-loader</a></li>
-      <li><a href="https://github.com/vuejs/awesome-vue" target="_blank" rel="noopener">awesome-vue</a></li>
-    </ul>
+  <div class="container">
+    <section class="section-game-start" v-if="!isPlaying && !gameOver">
+      <h2>Mathematic<br />Quiz</h2>
+      <button class="btn btn-warning btn-lg mt-3" @click="playingGame">
+        Play Now <i class="fa fa-play"></i>
+      </button>
+    </section>
+    <section class="section-game-play" v-if="isPlaying">
+      <div class="answer-group">
+        <div class="timers">
+          <span class="timer">{{ timeleft }}</span>
+        </div>
+        <div class="question mt-3">
+          <h1 class="question">
+            {{ variabel1 }} {{ operatorChoose === "*" ? "x" : operatorChoose }}
+            {{ variabel2 }} =
+          </h1>
+        </div>
+      </div>
+      <form class="mt-3" @submit.prevent="userSubmitAnswer">
+        <input
+          type="number"
+          placeholder="Input your answer here"
+          class="text-center user-answer"
+          v-model="answer"
+          autofocus
+        />
+        <br />
+        <button v-if="answer" type="submit" class="btn btn-warning btn-sm mt-2">
+          Submit
+        </button>
+      </form>
+    </section>
+    <section class="section-game-fail" v-if="gameOver">
+      <h1>Failed !! <br />Try Again</h1>
+      <button @click="tryAgain" class="btn btn-warning btn-lg try-again mt-2">
+        <i class="fa fa-repeat"></i>
+      </button>
+    </section>
   </div>
 </template>
 
 <script>
 export default {
-  name: 'HelloWorld',
-  props: {
-    msg: String
-  }
-}
+  data() {
+    return {
+      answer: "",
+      isPlaying: false,
+      variabel1: null,
+      variabel2: null,
+      gameOver: false,
+      operator: ["+", "-", "*"],
+      operatorChoose: null,
+      result: "",
+      timeleft: 30,
+    };
+  },
+  methods: {
+    playingGame() {
+      this.timeleft = 30;
+      this.isPlaying = true;
+      this.questionRandom();
+    },
+    questionRandom() {
+      let operator = ["+", "-", "*"];
+      let operatorRandom = Math.floor(Math.random() * 3);
+
+      this.variabel1 = parseInt(Math.random() * 20);
+      this.variabel2 = parseInt(Math.random() * 20);
+
+      this.operatorChoose = operator[operatorRandom];
+      this.sumVariabel();
+    },
+    userSubmitAnswer() {
+      this.answer = parseInt(this.answer);
+      if (this.answer === this.result) {
+        this.playingGame();
+        this.answer = "";
+      } else {
+        this.isPlaying = false;
+        this.gameOver = true;
+      }
+    },
+    tryAgain() {
+      this.playingGame();
+      this.answer = "";
+      this.gameOver = false;
+    },
+    sumVariabel() {
+      if (this.operatorChoose === "+") {
+        this.result = this.variabel1 + this.variabel2;
+      } else if (this.operatorChoose === "-") {
+        this.result = this.variabel1 - this.variabel2;
+      } else {
+        this.result = this.variabel1 * this.variabel2;
+      }
+    },
+  },
+  mounted() {
+    let downloadTimer = setInterval(() => {
+      if (this.timeleft <= 0) {
+        this.isPlaying = false;
+        this.gameOver = true;
+      }
+      this.timeleft -= 1;
+    }, 1000);
+  },
+};
 </script>
 
-<!-- Add "scoped" attribute to limit CSS to this component only -->
-<style scoped>
-h3 {
-  margin: 40px 0 0;
+<style>
+.container {
+  color: rgb(0, 255, 34);
 }
-ul {
-  list-style-type: none;
-  padding: 0;
+.answer-group {
+  background-color: rgba(2, 0, 97, 0.4);
+  padding: 35px;
+  border-radius: 9px;
 }
-li {
-  display: inline-block;
-  margin: 0 10px;
+input {
+  background: transparent;
+  color: white;
+  border-radius: 8px;
+  border: none;
+  font-size: 20px;
 }
-a {
-  color: #42b983;
+input:focus {
+  outline: none;
+}
+.question {
+  font-size: 50px;
+}
+.timer {
+  padding: 10px 12px;
+  background-color: rgb(180, 0, 0);
+  border-radius: 50%;
+  color: white;
+  font-size: 25px;
+}
+
+.try-again {
+  border-radius: 50%;
 }
 </style>
